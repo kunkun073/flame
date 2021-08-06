@@ -234,7 +234,7 @@ class _GameWidgetState<T extends Game> extends State<GameWidget<T>> {
         color: widget.game.backgroundColor(),
         child: LayoutBuilder(
           builder: (_, BoxConstraints constraints) {
-            widget.game.onResize(constraints.biggest.toVector2());
+            widget.game.onGameResize(constraints.biggest.toVector2());
             return FutureBuilder(
               future: _gameLoaderFutureCache,
               builder: (_, snapshot) {
