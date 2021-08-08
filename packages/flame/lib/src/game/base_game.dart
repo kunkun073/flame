@@ -210,16 +210,16 @@ class BaseGame extends Game {
 
   // TODO: Write dartdoc
   @override
-  Future<void> add(Component child, {BaseGame? gameRef}) {
-    return children.addChild(child, gameRef: gameRef ?? this);
+  Future<void> add(Component child) {
+    return children.addChild(child);
   }
 
   /// Adds multiple children.
   ///
   /// See [add] for details.
   @override
-  Future<void> addAll(List<Component> cs, {BaseGame? gameRef}) {
-    return children.addChildren(cs, gameRef: gameRef ?? this);
+  Future<void> addAll(List<Component> cs) {
+    return children.addChildren(cs);
   }
 
   /// Changes the priority of [component] and reorders the games component list.

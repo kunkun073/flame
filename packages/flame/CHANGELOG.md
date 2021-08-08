@@ -40,6 +40,8 @@
  - In debug mode `PositionComponent` now displays an indicator for the anchor position.
  - Update `Camera` docs to showcase usage with `Game` class
  - Fixed a bug with `worldBounds` being set to `null` in `Camera`
+ - `Game` is now a `Component`
+ - `ComponentEffect` is now a `Component`
 
 ## [1.0.0-releasecandidate.13]
  - Fix camera not ending up in the correct position on long jumps

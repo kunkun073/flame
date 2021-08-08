@@ -18,6 +18,12 @@ abstract class Component {
   /// HUD objects ignore the BaseGame.camera when rendered (so their position coordinates are considered relative to the device screen).
   bool isHud = false;
 
+  bool _isPrepared = false;
+
+  /// Whether this component was prepared by a [Game] or not, if not it should
+  /// be prepared once itself or a parent is added to a [Game].
+  bool get isPrepared => _isPrepared;
+
   bool _isMounted = false;
 
   /// Whether this component is currently mounted on a game or not
@@ -109,15 +115,15 @@ abstract class Component {
   /// only be called after the game already has its layout set, this can be
   /// verified by the [hasLayout] property, to add components upon a game
   /// initialization, the [onLoad] method can be used instead.
-  Future<void> add(Component child, {BaseGame? gameRef}) {
-    return children.addChild(child, gameRef: gameRef);
+  Future<void> add(Component component) {
+    return children.addChild(component);
   }
 
   /// Adds multiple children.
   ///
   /// See [add] for details.
-  Future<void> addAll(List<Component> cs, {BaseGame? gameRef}) {
-    return children.addChildren(cs, gameRef: gameRef);
+  Future<void> addAll(List<Component> components) {
+    return children.addChildren(components);
   }
 
   /// Removes a component from the component list, calling onRemove for it and
@@ -166,7 +172,6 @@ abstract class Component {
         shouldContinue = handler(child);
       } else if (shouldContinue && child is BaseGame) {
         shouldContinue = child.propagateToChildren<T>(handler);
-        print("Do we go here");
       }
       if (!shouldContinue) {
         break;
@@ -202,24 +207,41 @@ abstract class Component {
   /// See BaseGame.changePriority instead.
   void changePriorityWithoutResorting(int priority) => _priority = priority;
 
-  // TODO: Write comment
-  void prepare(Component child, {Game? gameRef}) {
-    if (this is HasGameRef) {
-      final c = this as HasGameRef;
-      gameRef ??= c.hasGameRef ? c.gameRef : null;
-    } else if (gameRef == null) {
-      assert(
-        !isMounted,
-        'Parent was already added to Game and has no HasGameRef; in this case, gameRef is mandatory.',
-      );
-    }
-    if (gameRef is BaseGame) {
-      gameRef.prepareComponent(child);
+  /// Prepares the [Component] child to be added to a [Game].
+  /// If there are no parents that are a [Game] this will run again once a
+  /// parent is added to a [Game].
+  void prepare(Component child) {
+    Game? findGameRef(Component? c) {
+      if (c == null) {
+        return null;
+      } else if (c is HasGameRef) {
+        return c.gameRef;
+      } else {
+        return c is Game ? c : findGameRef(c.parent);
+      }
     }
 
-    child._parent = this;
-    if (child is BaseComponent && this is BaseComponent) {
-      child.debugMode = (this as BaseComponent).debugMode;
+    final parentGame = findGameRef(this);
+    if (parentGame != null) {
+      _isPrepared = false;
+    } else {
+      if (this is HasGameRef) {
+        final c = this as HasGameRef;
+        c.gameRef = c.hasGameRef ? parentGame! : null;
+      }
+      if (parentGame is BaseGame) {
+        parentGame.prepareComponent(child);
+      }
+
+      child._parent = this;
+      if (child is BaseComponent && this is BaseComponent) {
+        child.debugMode = (this as BaseComponent).debugMode;
+      }
+      child.propagateToChildren((Component c) {
+        prepare(c);
+        return true;
+      });
+      _isPrepared = true;
     }
   }
 

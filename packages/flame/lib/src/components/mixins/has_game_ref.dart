@@ -1,7 +1,7 @@
 import '../../../components.dart';
 import '../../../game.dart';
 
-mixin HasGameRef<T extends BaseGame> on Component {
+mixin HasGameRef<T extends Game> on Component {
   T? _gameRef;
 
   T get gameRef {
@@ -14,14 +14,9 @@ mixin HasGameRef<T extends BaseGame> on Component {
 
   bool get hasGameRef => _gameRef != null;
 
-  set gameRef(T gameRef) {
+  set gameRef(T? gameRef) {
     _gameRef = gameRef;
-    if (this is BaseComponent) {
-      // TODO(luan) this is wrong, should be done using propagateToChildren
-      (this as BaseComponent)
-          .children
-          .query<HasGameRef>()
-          .forEach((e) => e.gameRef = gameRef);
-    }
+    // TODO: need to register this
+    children.query<HasGameRef>().forEach((e) => e.gameRef = gameRef);
   }
 }
