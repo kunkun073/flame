@@ -18,12 +18,6 @@ abstract class Component {
   /// HUD objects ignore the BaseGame.camera when rendered (so their position coordinates are considered relative to the device screen).
   bool isHud = false;
 
-  bool _isPrepared = false;
-
-  /// Whether this component was prepared by a [Game] or not, if not it should
-  /// be prepared once itself or a parent is added to a [Game].
-  bool get isPrepared => _isPrepared;
-
   bool _isMounted = false;
 
   /// Whether this component is currently mounted on a game or not
@@ -68,6 +62,13 @@ abstract class Component {
 
   /// Remove the component from the game it is added to in the next tick
   void removeFromParent() => shouldRemove = true;
+
+  /// Changes the current parent for another parent and prepares the tree under
+  /// the new root.
+  void changeParent(Component component) {
+    removeFromParent();
+    component.add(this);
+  }
 
   /// It receives the new game size.
   /// Executed right after the component is attached to a game and right before
@@ -180,6 +181,10 @@ abstract class Component {
     return shouldContinue;
   }
 
+  T? findParent<T extends Component>() {
+    return (parent is T ? parent : parent?.findParent<T>()) as T?;
+  }
+
   /// Called before the component is added to the BaseGame by the add method.
   /// Whenever this returns something, BaseGame will wait for the [Future] to be resolved before adding the component on the list.
   /// If `null` is returned, the component is added right away.
@@ -195,6 +200,7 @@ abstract class Component {
   ///   myImage = await gameRef.load('my_image.png');
   /// }
   /// ```
+// TODO: Why not Future<void>?
   Future<void> onLoad() async {}
 
   /// Called to check whether the point is to be counted as within the component
@@ -209,39 +215,31 @@ abstract class Component {
 
   /// Prepares the [Component] child to be added to a [Game].
   /// If there are no parents that are a [Game] this will run again once a
-  /// parent is added to a [Game].
-  void prepare(Component child) {
-    Game? findGameRef(Component? c) {
-      if (c == null) {
-        return null;
-      } else if (c is HasGameRef) {
-        return c.gameRef;
-      } else {
-        return c is Game ? c : findGameRef(c.parent);
-      }
-    }
-
-    final parentGame = findGameRef(this);
-    if (parentGame != null) {
-      _isPrepared = false;
+  /// parent is added to a [Game] and false will be returned.
+  @mustCallSuper
+  bool prepare(Component child) {
+    child._parent = this;
+    final parentGame = child.findParent<Game>();
+    if (parentGame == null) {
+      return false;
     } else {
       if (this is HasGameRef) {
         final c = this as HasGameRef;
-        c.gameRef = c.hasGameRef ? parentGame! : null;
+        c.gameRef = c.hasGameRef ? parentGame : null;
       }
       if (parentGame is BaseGame) {
         parentGame.prepareComponent(child);
       }
 
-      child._parent = this;
       if (child is BaseComponent && this is BaseComponent) {
         child.debugMode = (this as BaseComponent).debugMode;
       }
+
       child.propagateToChildren((Component c) {
         prepare(c);
         return true;
       });
-      _isPrepared = true;
+      return true;
     }
   }
 
