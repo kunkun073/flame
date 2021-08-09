@@ -117,8 +117,9 @@ class _GameWidgetState<T extends Game> extends State<GameWidget<T>> {
   Set<String> initialActiveOverlays = {};
 
   Future<void>? _gameLoaderFuture;
-  Future<void> get _gameLoaderFutureCache =>
-      _gameLoaderFuture ?? (_gameLoaderFuture = widget.game.onLoad());
+  Future<void>? get _gameLoaderFutureCache {
+    return _gameLoaderFuture ?? (_gameLoaderFuture = widget.game.onLoad());
+  }
 
   @override
   void initState() {

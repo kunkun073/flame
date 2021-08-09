@@ -140,10 +140,13 @@ class BaseGame extends Game {
     c.onGameResize(size);
   }
 
-  /// This implementation of render basically calls [renderComponent] for every component, making sure the canvas is reset for each one.
+  /// This implementation of render basically calls [renderComponent] for every
+  /// component, making sure the canvas is reset for each one.
   ///
   /// You can override it further to add more custom behavior.
-  /// Beware of however you are rendering components if not using this; you must be careful to save and restore the canvas to avoid components messing up with each other.
+  /// Beware of however you are rendering components if not using this; you must
+  /// be careful to save and restore the canvas to avoid components messing up
+  /// with each other.
   @override
   @mustCallSuper
   void render(Canvas canvas) {
@@ -154,8 +157,10 @@ class BaseGame extends Game {
 
   /// This renders a single component obeying BaseGame rules.
   ///
-  /// It translates the camera unless hud, call the render method and restore the canvas.
-  /// This makes sure the canvas is not messed up by one component and all components render independently.
+  /// It translates the camera unless hud, call the render method and restore
+  /// the canvas.
+  /// This makes sure the canvas is not messed up by one component and all
+  /// components render independently.
   void renderComponent(Canvas canvas, Component c) {
     canvas.save();
     if (!c.isHud) {
@@ -203,24 +208,12 @@ class BaseGame extends Game {
 
   /// Returns whether this [Game] is in debug mode or not.
   ///
-  /// Returns `false` by default. Override it, or set it to true, to use debug mode.
-  /// You can use this value to enable debug behaviors for your game and many components will
+  /// Returns `false` by default. Override it, or set it to true, to use debug
+  /// mode.
+  /// You can use this value to enable debug behaviors for your game and many
+  /// components will
   /// show extra information on the screen when debug mode is activated
   bool debugMode = false;
-
-  // TODO: Write dartdoc
-  @override
-  Future<void> add(Component child) {
-    return children.addChild(child);
-  }
-
-  /// Adds multiple children.
-  ///
-  /// See [add] for details.
-  @override
-  Future<void> addAll(List<Component> cs) {
-    return children.addChildren(cs);
-  }
 
   /// Changes the priority of [component] and reorders the games component list.
   ///
