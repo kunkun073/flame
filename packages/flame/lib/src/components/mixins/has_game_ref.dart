@@ -5,18 +5,27 @@ mixin HasGameRef<T extends Game> on Component {
   T? _gameRef;
 
   T get gameRef {
-    final ref = _gameRef;
-    if (ref == null) {
-      throw 'Accessing gameRef before the component was added to the game!';
+    if (_gameRef == null) {
+      var c = parent;
+      while (c != null) {
+        if (c is HasGameRef<T> && c._gameRef != null) {
+          _gameRef = c._gameRef;
+          return _gameRef!;
+        } else if (c is T) {
+          _gameRef = c;
+          return c;
+        } else {
+          c = c.parent;
+        }
+      }
+      throw StateError('Cannot find reference $T in the component tree');
     }
-    return ref;
+    return _gameRef!;
   }
 
-  bool get hasGameRef => _gameRef != null;
-
-  set gameRef(T? gameRef) {
-    _gameRef = gameRef;
-    // TODO: need to register this
-    children.query<HasGameRef>().forEach((e) => e.gameRef = gameRef);
+  @override
+  void onRemove() {
+    super.onRemove();
+    _gameRef = null;
   }
 }
